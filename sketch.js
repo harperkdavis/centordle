@@ -10,10 +10,18 @@ let game = {
   words: [],
   guesses: [],
   currentGuess: "",
+  ctaAnim: 0,
 };
 
 let keyboardImages = {};
 let letters = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n', 'm'];
+let hkedImage = null;
+
+let iFramed = false;
+
+function preload() {
+  hkedImage = loadImage('favicon.ico');
+}
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -26,6 +34,10 @@ function setup() {
   }
 
   renderKeyboardImages();
+
+  if (window.location !== window.parent.location) {
+    iFramed = true;
+  }
 }
 
 function renderKeyboardImages() {
@@ -73,13 +85,14 @@ function reset() {
   game.words = [];
   game.guesses = [];
   game.currentGuess = "";
+  game.ctaAnim = 0;
   
   let days = floor(Date.now() / 8.64e7);
   randomSeed(days);
 
   game.dayPlaying = days;
 
-  let wordsList = words.slice(0, 1000);
+  let wordsList = words.slice(0, 2000);
   for (let i = 0; i < 100; i++) {
     let wordIndex = floor(random(0, wordsList.length));
     game.words.push(wordsList[wordIndex]);
@@ -100,6 +113,8 @@ function loadGame() {
     reset();
     saveGame();
   }
+
+  game.ctaAnim = 0;
 }
 
 function windowResized() {
@@ -107,6 +122,9 @@ function windowResized() {
 }
 
 function mousePressed() {
+  if (iFramed) {
+    window.open('https://hked.live/centordle');
+  }
   if (getCompletedWords() == 100) {
     if (mouseX > width / 2 - 180 && mouseY > height / 2 - 40 && mouseX < width / 2 - 180 + 360 && mouseY < height / 2 - 40 + 80) {
       let copyText = 'Centordle ' + ((new Date()).getMonth() + 1) + '/' + (new Date()).getDate() + '\n' + game.guesses.length +  '/108\n\n';
@@ -164,6 +182,7 @@ function update() {
     }
   });
 
+  game.ctaAnim = lerp(game.ctaAnim, 1, 0.1);
 }
 
 function isWordValid() {
@@ -230,7 +249,19 @@ function getWordStatus(word, guess) {
 function draw() {
   textAlign(CENTER, CENTER);
 
+  if (iFramed) {
+    background(250);
+    textAlign(LEFT, TOP);
+    textSize(32);
+    textStyle(NORMAL);
+    fill(0);
+    noStroke();
+    text("Hey! Thank you for playing my game! It appears that someone has embedded my game in another site. Please consider supporting the developer by clicking anywhere to automatically go to the original website, or navigate to to https://hked.live/centordle. I make no money off of this game but those who host my original content on their sites do. Thank you for being considerate! -HKD", 20, 20, 700);
+    return;
+  }
+
   if (width < height) {
+    background(250);
     fill(0);
     textAlign(CENTER, CENTER);
     textStyle(NORMAL);
@@ -453,6 +484,17 @@ function draw() {
   textAlign(LEFT, TOP);
   text("Guesses: " + game.guesses.length + "/108", width / 4 + 16, height - 140);
   text("Words: " + getCompletedWords() + "/100", width / 4 + 16, height - 120);
+
+  fill(0, game.ctaAnim * 255);
+  textSize(12);
+  textStyle(NORMAL);
+  text("Like CENTORDLE?", 50 - textWidth("Like CENTORDLE?") * ( 1 - game.ctaAnim ** 2), 15);
+  text("Play more games on hked.live!", 50 - textWidth("Like CENTORDLE?") * (1 - game.ctaAnim ** 3), 30);
+  
+  image(hkedImage, -50 + game.ctaAnim * 60, 10, 32, 32);
+
+  
+  text("© Harper Davis " + new Date().getFullYear(), width / 4 + 16, height - 20);
 
   if (getCompletedWords() == 100) {
     fill(255, 200);
